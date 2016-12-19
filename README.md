@@ -5,7 +5,6 @@ Defibrilators
 MIME Type  
 Horse-racing Duals  
 ASCII Art  
-Mars Lander  
 Chuck Norris  
 Temperatures  
 Power of Thor  
