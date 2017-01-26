@@ -1,0 +1,38 @@
+# w: number of columns.
+# h: number of rows.
+w, h = [int(i) for i in raw_input().split()]
+room_type = ((),#0
+            ({'LEFT':(0,1),'RIGHT':(0,1),'TOP':(0,1)}),#1
+            ({'LEFT':(1,0),'RIGHT':(-1,0)}),#2
+            ({'TOP':(0,1)}),#3
+            ({'RIGHT':(0,1),'TOP':(-1,0)}),#4
+            ({'LEFT':(0,1),'TOP':(1,0)}),#5
+            ({'LEFT':(1,0),'RIGHT':(-1,0)}),#6
+            ({'RIGHT':(0,1),'TOP':(0,1)}),#7
+            ({'LEFT':(0,1),'RIGHT':(0,1)}),#8
+            ({'LEFT':(0,1),'TOP':(0,1)}),#9
+            ({'TOP':(-1,0)}),#10
+            ({'TOP':(1,0)}),#11
+            ({'RIGHT':(0,1)}),#12
+            ({'LEFT':(0,1)})#13
+)
+mapx = []
+for i in xrange(h):
+    line = raw_input()  # represents a line in the grid and contains W integers. Each integer represents one room of a given type.
+    rooms = line.split(' ')
+    mapx.append(rooms)
+ex = int(raw_input())  # the coordinate along the X axis of the exit (not useful for this first mission, but must be read).
+
+# game loop
+while True:
+    xi, yi, pos = raw_input().split()
+    xi = int(xi)
+    yi = int(yi)
+    
+    room = int(mapx[yi][xi])
+
+    next_x = room_type[room][pos][0] + xi
+    next_y = room_type[room][pos][1] + yi
+
+    # One line containing the X Y coordinates of the room in which you believe Indy will be on the next turn.
+    print next_x,next_y
