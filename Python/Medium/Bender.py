@@ -1,81 +1,91 @@
-import sys
-import math
+map_lines = []
+teleporters = []
+past_states = []
+ans = []
+directions = {
+              'SOUTH': (0,1),
+              'EAST': (1,0),
+              'NORTH': (0,-1),
+              'WEST': (-1,0),
+              }
+priorities = ['SOUTH', 'EAST', 'NORTH', 'WEST']
+beer = False
+inverted = False
+current_dir = 'SOUTH'
 
 l, c = [int(i) for i in raw_input().split()]
-mapc = []
-past_states = []
-telep = []
-direction = "SOUTH"
-ans = []
-beer = False
-invert = False
-moddirection = ''
-directions = {"SOUTH":(0,1),"EAST":(1,0),"NORTH":(0,-1),"WEST":(-1,0)}
-ret = ["SOUTH","EAST","NORTH","WEST"]
 for i in xrange(l):
     row = raw_input()
-    mapc.append(row)
+    map_lines.append(row)
     if '@' in row:
-        coords = [row.index('@'),i]
+        start_xy = [row.index('@'), i]
     if 'T' in row:
-        telep.append([row.index('T'),i])
+        teleporters.append([row.index('T'), i])
+    if '$' in row:
+        final_xy = [row.index('$'), i]
 
-end_state = '{}{}{}{}'.format(coords,direction,beer,invert)
-
-while (end_state not in past_states):
-    #if end_state in past_states:
-    #    ans = ['LOOP']
-    #    break
-    
-    ind = 0
-    past_states.append('{}{}{}{}'.format(coords,direction,beer,invert))
-    
-    if mapc[coords[1]][coords[0]] == 'T':
-        if coords == telep[0]:
-            coords[1] = telep[1][1]
-            coords[0] = telep[1][0]
-        else:
-            coords[1] = telep[0][1]
-            coords[0] = telep[0][0]
-    
-    if mapc[coords[1]][coords[0]] == 'B':
+#Game loop
+while True: 
+    #Loop condition
+    if (str(start_xy), beer, inverted, current_dir) in past_states:
+        ans = ['LOOP']
+        break
+    past_states.append((str(start_xy), beer, inverted, current_dir))
+    #Ending condition
+    if start_xy == final_xy:
+        break
+    #Instant changes
+    elif map_lines[start_xy[1]][start_xy[0]] == 'S':
+        current_dir = 'SOUTH'
+    elif map_lines[start_xy[1]][start_xy[0]] == 'E':
+        current_dir = 'EAST'
+    elif map_lines[start_xy[1]][start_xy[0]] == 'N':
+        current_dir = 'NORTH'
+    elif map_lines[start_xy[1]][start_xy[0]] == 'W':
+        current_dir = 'WEST'
+    #Inverters
+    elif map_lines[start_xy[1]][start_xy[0]] == 'I':
+        priorities.reverse()
+        inverted = not inverted
+    #Breaker mode    
+    elif map_lines[start_xy[1]][start_xy[0]] == 'B':
         beer = not beer
-        
-    while mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] in '#X':
-        if mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] in "#":
-            direction = ret[ind]
-            ind += 1
-        if mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] in "X":
+    #Teleporters
+    elif map_lines[start_xy[1]][start_xy[0]] == 'T':
+        if start_xy == teleporters[0]:
+            start_xy = teleporters[1]
+        else:
+            start_xy = teleporters[0]
+    #Obstacle #
+    try:
+        i = 0
+        while map_lines[start_xy[1]+directions[current_dir][1]]\
+                        [start_xy[0]+directions[current_dir][0]] == '#':
+            current_dir = priorities[i]
+            i += 1
+    except IndexError:
+        ans = ['LOOP']
+        break
+    #Obstacle X
+    try:
+        i = 0
+        while map_lines[start_xy[1]+directions[current_dir][1]]\
+                            [start_xy[0]+directions[current_dir][0]] == 'X':
             if beer:
-                mapc[coords[1]+directions[direction][1]] = mapc[coords[1]+directions[direction][1]][0:coords[0]+directions[direction][0]]+" "+mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]+1:]
+                map_lines[start_xy[1]+directions[current_dir][1]] = \
+                    map_lines[start_xy[1]+directions[current_dir][1]][:start_xy[0]+directions[current_dir][0]]\
+                    +' '\
+                    +map_lines[start_xy[1]+directions[current_dir][1]][start_xy[0]+directions[current_dir][0]+1:]
                 past_states = []
             else:
-                direction = ret[ind]
-                ind += 1
-    
-    if moddirection:
-        direction = moddirection
-        moddirection = ''
-    elif mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] == 'S':
-        moddirection = 'SOUTH'
-    elif mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] == 'E':
-        moddirection = 'EAST'
-    elif mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] == 'N':
-        moddirection = 'NORTH'
-    elif mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] == 'W':
-        moddirection = 'WEST' 
-        
-    elif mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] == 'I':
-        ret = ret[::-1]
-    elif mapc[coords[1]+directions[direction][1]][coords[0]+directions[direction][0]] == '$':
-        ans.append(str(direction))
+                current_dir = priorities[i]
+                i += 1
+    except IndexError:
+        ans = ['LOOP']
         break
-        
-    coords[0] = coords[0] + directions[direction][0]
-    coords[1] = coords[1] + directions[direction][1]
-    ans.append(str(direction))
-    end_state = '{}{}{}{}'.format(coords,direction,beer,invert)
-else:
-    ans = ['LOOP']
-for single in ans:
-    print single
+
+    ans.append(current_dir)
+    start_xy = [start_xy[0]+directions[current_dir][0], start_xy[1]+directions[current_dir][1]]
+
+for direction in ans:
+    print direction
